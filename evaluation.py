@@ -13,14 +13,11 @@ from src.randomForest import randomForest_train_predict
 from src.svr import svr_train_predict
 
 #1) IMPORTING DATA ----------------------------------------------------------------------
-
-#CODE HERE:
-data = pd.read_csv('data/stocks_data.csv')
+data = pd.read_csv('Workshop 4/data/stocks_data.csv')
 
 df = pd.DataFrame(data)
-#2) EVALUATION FUNCTION -----------------------------------------------------------------
 
-#CODE HERE:
+#2) EVALUATION FUNCTION -----------------------------------------------------------------
 def evaluate_model(model, stock, Y_test, Y_predictions):
     print(f"{model} evaluation for {stock}:")
 
@@ -30,44 +27,38 @@ def evaluate_model(model, stock, Y_test, Y_predictions):
     print(f"Mean Squared Error: {mse:.4f}")
     print(f"R2 Score: {r2:.4f}")
 
-    return mse, r2
+    return r2, mse
 
 #3) PREDICTING STOCK --------------------------------------------------------------------
-
-#CODE HERE:
-stocks = data["Name"].unique() #Extracting unique stock names from the data
-
-# Features & Target
-features = ['open', 'high', 'low', 'volume', 'return', 'rolling_mean', 'rolling_std'] #Features to be used for prediction
+stocks = data['Name'].unique() #Getting all different stocks in the Data
+features = ['open', 'high', 'low', 'volume', 'return', 'rolling_mean', 'rolling_std']
 target = 'close'
 
+#Dictionary to store the results for each model
 results = {'lstm_r2' : [], 'lstm_mse' : [],
            'randomForest_r2' : [], 'randomForest_mse' : [],
-          'svr_r2' : [], 'svr_mse' : []}
+           'svr_r2' : [], 'svr_mse' : []} 
 
 for stock in stocks: #Iterating over each stock to be predicted by each model
 
     # ---- Stock Data Preparation ----
+    stock_data = data[data['Name'] == stock] #Getting the data for the stock
 
-    #CODE HERE:
-    stock_data = data[data['Name'] == stock]
+    X = stock_data[features] #Getting the features
+    y = stock_data[target] #Getting the target
+    dates = stock_data['date'] #Getting the dates for each stock
 
-    X = stock_data[features]
-    y = stock_data[target]
-    dates = stock_data['date']
+    X_train, X_test, Y_train, Y_test, dates_train, dates_test = train_test_split(X, y, dates, test_size=0.2, random_state= 42)
 
-    X_train, X_test, y_train, y_test, dates_train, dates_test = train_test_split(X, y, dates, test_size=0.2, random_state= 42)
-
-    # Sort Test Data by Date
+    # Sort test data by date
     X_test_sorted = X_test.sort_index()
-    y_test_sorted = y_test.sort_index()
-    dates_test_sorted = pd.to_datetime(dates_test.sort_values())
+    y_test_sorted = Y_test.sort_index()
+    dates_test_sorted = pd.to_datetime(dates_test.sort_index())
 
     # ---- LSTM Model ----
+    Y_predictions = lstm_train_predict(X_train, Y_train, X_test_sorted)
 
-    #CODE HERE:
-    Y_predictions = lstm_train_predict(X_train, y_train, X_test_sorted)
-    mse, r2 = evaluate_model('LSTM', stock, y_test_sorted, Y_predictions)
+    r2, mse = evaluate_model('LSTM', stock, y_test_sorted, Y_predictions)
 
     results['lstm_r2'].append(r2)
     results['lstm_mse'].append(mse)
@@ -85,11 +76,9 @@ for stock in stocks: #Iterating over each stock to be predicted by each model
     plt.close()
 
     # ---- Random Forest Model ----
+    Y_predictions = randomForest_train_predict(X_train, Y_train, X_test_sorted)
 
-    #CODE HERE:
-
-    Y_predictions = randomForest_train_predict(X_train, y_train, X_test_sorted)
-    mse, r2 = evaluate_model('Random Forest', stock, y_test_sorted, Y_predictions)
+    r2, mse = evaluate_model('Random Forest', stock, y_test_sorted, Y_predictions)
 
     results['randomForest_r2'].append(r2)
     results['randomForest_mse'].append(mse)
@@ -107,10 +96,9 @@ for stock in stocks: #Iterating over each stock to be predicted by each model
     plt.close()
 
     # ---- SVR (Support Vector Regressor) Model ----
+    Y_predictions = svr_train_predict(X_train, Y_train, X_test_sorted)
 
-    #CODE HERE:
-    Y_predictions = svr_train_predict(X_train, y_train, X_test_sorted)
-    mse, r2 = evaluate_model('SVR', stock, y_test_sorted, Y_predictions)
+    r2, mse = evaluate_model('SVR', stock, y_test_sorted, Y_predictions)
 
     results['svr_r2'].append(r2)
     results['svr_mse'].append(mse)
@@ -131,4 +119,19 @@ for stock in stocks: #Iterating over each stock to be predicted by each model
 print("Results:")
 
 # LSTM Average Results 
-l 
+lstm_r2 = np.mean(results['lstm_r2'])
+lstm_mse = np.mean(results['lstm_mse'])
+print(f"LSTM Average R2 Score: {lstm_r2:.4f}")
+print(f"LSTM Average Mean Squared Error: {lstm_mse:.4f}")
+
+# Random Forest Average Results
+randomForest_r2 = np.mean(results['randomForest_r2'])
+randomForest_mse = np.mean(results['randomForest_mse'])
+print(f"Random Forest Average R2 Score: {randomForest_r2:.4f}")
+print(f"Random Forest Average Mean Squared Error: {randomForest_mse:.4f}")
+
+# SVR Average Results
+svr_r2 = np.mean(results['svr_r2'])
+svr_mse = np.mean(results['svr_mse'])
+print(f"SVR Average R2 Score: {svr_r2:.4f}")
+print(f"SVR Average Mean Squared Error: {svr_mse:.4f}")
