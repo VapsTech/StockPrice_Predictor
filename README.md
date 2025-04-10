@@ -15,7 +15,7 @@ The Stock Price Predictor utilizes historical stock data from 380 different comp
 - **data/**: Contains historical stock data used for training and testing.
 - **src/**: Includes the source code for data processing and model buidling, including SVR (Support Vector Regression), Random Forest, and LSTM (Long-Short Term Memory).
 - **result/**: Stores the graph output of each stock for each of the models.
-- **evaluation.py**: The main script responsible for iterating over each stock, calling the models and to evaluate their performances.
+- **evaluation.py**: The main script responsible for iterating over each stock, calling the models and evaluating their performances.
 
 ## Data
 
